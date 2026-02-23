@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const N8N_WEBHOOK_URL = "https://aut.jobova.net/webhook-test/healthcare-lead";
+const N8N_WEBHOOK_URL = "https://aut.jobova.net/webhook/healthcare-lead";
 
 export type RegisterCphqBody = {
   name: string;
