@@ -2,16 +2,14 @@ import { NextResponse } from "next/server";
 
 const N8N_WEBHOOK_URL = "https://aut.jobova.net/webhook/healthcare-lead";
 
-export type RegisterCphqBody = {
-  name: string;
-  email: string;
-  phone: string;
-  specialty: string;
-};
-
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as Partial<RegisterCphqBody>;
+    const body = (await request.json()) as {
+      name?: string;
+      email?: string;
+      phone?: string;
+      specialty?: string;
+    };
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim() : "";
     const phone = typeof body.phone === "string" ? body.phone.trim() : "";
@@ -32,23 +30,28 @@ export async function POST(request: Request) {
     const minutes = String(now.getMinutes()).padStart(2, "0");
     const timestamp = `${day}-${month}-${year} at ${hours}:${minutes}`;
 
-    const payload = { name, email, phone, specialty, timestamp };
+    const payload = {
+      name,
+      email,
+      phone,
+      specialty,
+      timestamp,
+      source: "webinar",
+    };
     const bodyStr = JSON.stringify(payload);
-    const opts: RequestInit = {
+    const res = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: bodyStr,
       redirect: "manual",
       signal: AbortSignal.timeout(15000),
-    };
+    });
 
-    let res = await fetch(N8N_WEBHOOK_URL, opts);
     const location = res.headers.get("location");
-
-    // Follow redirect (re-POST to preserve body)
+    let finalRes = res;
     if (res.status >= 301 && res.status <= 308 && location) {
       const redirectUrl = location.startsWith("http") ? location : new URL(location, N8N_WEBHOOK_URL).href;
-      res = await fetch(redirectUrl, {
+      finalRes = await fetch(redirectUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: bodyStr,
@@ -56,17 +59,14 @@ export async function POST(request: Request) {
       });
     }
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("n8n webhook error:", res.status, text);
-      // Still return success so user is not blocked; webhook failure is logged
+    if (!finalRes.ok) {
+      const text = await finalRes.text();
+      console.error("n8n webinar webhook error:", finalRes.status, text);
       return NextResponse.json({ success: true });
     }
-
     return NextResponse.json({ success: true });
   } catch (e) {
-    console.error("register-cphq API error:", e);
-    // Timeout or network error calling n8n: accept registration and log
+    console.error("webinar-register API error:", e);
     return NextResponse.json({ success: true });
   }
 }

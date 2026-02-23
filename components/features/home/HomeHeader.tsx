@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OFFERS_DROPDOWN_ITEMS } from "@/constants";
+import { OFFERS_DROPDOWN_ITEMS, WEBINARS_DROPDOWN_ITEMS } from "@/constants";
 
 const navLinks = [
   { href: "/courses", label: "Courses" },
@@ -52,6 +52,28 @@ export function HomeHeader() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "flex items-center gap-1 text-sm font-medium uppercase tracking-wide text-white/90 outline-none transition-colors hover:text-white"
+              )}
+              aria-haspopup="true"
+              aria-expanded={undefined}
+            >
+              Webinars
+              <ChevronDown className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[200px] border-zinc-800 bg-zinc-900 text-white">
+              <DropdownMenuItem asChild className="focus:bg-zinc-800 focus:text-white">
+                <Link href="/webinars">All webinars</Link>
+              </DropdownMenuItem>
+              {WEBINARS_DROPDOWN_ITEMS.map(({ href, label }) => (
+                <DropdownMenuItem key={href} asChild className="focus:bg-zinc-800 focus:text-white">
+                  <Link href={href}>{label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
@@ -82,6 +104,23 @@ export function HomeHeader() {
                   Offers
                 </Link>
                 {OFFERS_DROPDOWN_ITEMS.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className="pl-4 text-base text-white/80 hover:text-gold"
+                  >
+                    {label}
+                  </Link>
+                ))}
+                <Link
+                  href="/webinars"
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium uppercase tracking-wide text-white hover:text-gold"
+                >
+                  Webinars
+                </Link>
+                {WEBINARS_DROPDOWN_ITEMS.map(({ href, label }) => (
                   <Link
                     key={href}
                     href={href}

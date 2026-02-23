@@ -1,5 +1,5 @@
-import { DashboardLayout } from "@/components/features/layout/DashboardLayout";
+import { DashboardLayoutSwitcher } from "@/components/features/layout/DashboardLayoutSwitcher";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <DashboardLayoutSwitcher>{children}</DashboardLayoutSwitcher>;
 }

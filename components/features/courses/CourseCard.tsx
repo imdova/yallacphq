@@ -2,14 +2,16 @@ import Link from "next/link";
 import { Star, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TAG_STYLES } from "@/constants/courses";
+import { ROUTES } from "@/constants";
 import type { Course } from "@/types/course";
 import { cn } from "@/lib/utils";
 
 export function CourseCard({ course }: { course: Course }) {
   const tagStyle = TAG_STYLES[course.tag] ?? "bg-zinc-600 text-white";
+  const detailsHref = `${ROUTES.COURSE_DETAILS}?course=${encodeURIComponent(course.id)}`;
 
   return (
-    <Link href={`/courses/${course.id}`} className="group block">
+    <Link href={detailsHref} className="group block">
       <Card className="overflow-hidden border-zinc-200 transition-shadow hover:shadow-lg">
         <div className="relative aspect-video w-full bg-zinc-200">
           <div

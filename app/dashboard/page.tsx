@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardView } from "@/components/features/dashboard/DashboardView";
+import { StudentDashboardView } from "@/components/features/dashboard/StudentDashboardView";
 
 export default function DashboardPage() {
-  return <DashboardView />;
+  return <StudentDashboardView />;
 }
