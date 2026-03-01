@@ -19,6 +19,7 @@ export const ROUTES = {
   CPHQ_WEBINAR_1: "/webinars/cphq-webinar-1",
   COURSE_DETAILS: "/course-details",
   CHECKOUT: "/checkout",
+  PAY_CREDIT_PAYPAL: "/pay-credit-paypal1",
 } as const;
 
 export const OFFERS_DROPDOWN_ITEMS = [

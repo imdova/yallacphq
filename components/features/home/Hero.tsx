@@ -1,69 +1,60 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+const HERO_VIDEO_ID = "9JJYT8ajOKg";
+
 export function Hero() {
   return (
     <section
-      className="relative min-h-[90vh] overflow-hidden bg-gradient-to-br from-teal-dark via-teal to-black px-4 py-20 md:py-28"
+      className="relative min-h-[85vh] overflow-hidden bg-gradient-to-b from-zinc-950 via-zinc-900 to-black px-4 py-16 sm:py-20 md:py-24 lg:py-28"
       aria-label="Hero"
     >
-      <div className="container relative z-10 grid gap-12 lg:grid-cols-2 lg:items-center">
-        <div className="max-w-xl space-y-6">
-          <p className="text-sm font-medium uppercase tracking-widest text-white/80">
-            Confidence in Healthcare, Built for You
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(212,175,55,0.08),transparent)]" aria-hidden />
+      <div className="container relative z-10 grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
+        <div className="max-w-xl space-y-5">
+          <p className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/5 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-gold">
+            <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden />
+            Trusted by healthcare professionals
           </p>
           <h1 className="space-y-1">
-            <span className="block text-4xl font-semibold text-white md:text-5xl lg:text-6xl">
+            <span className="block text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
               Master
             </span>
-            <span className="block font-serif text-4xl font-semibold text-gold md:text-5xl lg:text-6xl">
+            <span className="block font-serif text-3xl font-semibold text-gold sm:text-4xl md:text-5xl lg:text-6xl">
               Healthcare Quality
             </span>
           </h1>
-          <p className="max-w-md text-base leading-relaxed text-white/90">
-            Prepare for the Certified Professional in Healthcare Quality (CPHQ) exam with programs
-            designed by industry experts. Build the skills and confidence to lead quality
-            improvement in your organization.
+          <p className="max-w-md text-base leading-relaxed text-zinc-300">
+            Prepare for the CPHQ exam with programs designed by industry experts. Build the skills
+            and confidence to lead quality improvement in your organization.
           </p>
-          <div className="flex flex-wrap gap-4 pt-2">
+          <div className="flex flex-wrap gap-3 pt-2">
             <Button
               asChild
-              className="bg-gold text-gold-foreground hover:bg-gold/90 font-semibold uppercase px-6 py-6"
+              size="lg"
+              className="rounded-xl bg-gold px-6 py-6 font-semibold text-gold-foreground shadow-lg shadow-gold/20 transition hover:bg-gold/90"
             >
-              <Link href="#enroll">Get Started</Link>
+              <Link href="#courses">Explore Courses</Link>
             </Button>
             <Button
               asChild
               variant="outline"
-              className="border-gold text-white hover:bg-gold/10 hover:text-white font-semibold uppercase px-6 py-6"
+              size="lg"
+              className="rounded-xl border-zinc-500 bg-transparent px-6 py-6 font-semibold text-white hover:border-gold/50 hover:bg-gold/10 hover:text-white"
             >
-              <Link href="#programs">View Program</Link>
+              <Link href="#enroll">Get Started</Link>
             </Button>
           </div>
         </div>
-        <div className="relative hidden lg:block">
-          <div
-            className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.03%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-60"
-            aria-hidden
-          />
-          <div className="relative flex h-[420px] items-center justify-center rounded-lg border border-gold/20 bg-white/5 backdrop-blur-sm">
-            <div className="text-center text-white/40">
-              <svg
-                className="mx-auto h-48 w-48"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={0.5}
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636 4.318 15.318a4.5 4.5 0 106.364 6.364z"
-                />
-              </svg>
-              <span className="text-sm">Healthcare illustration</span>
-            </div>
+        <div className="relative mt-8 lg:mt-0 md:block">
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gold/20 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+            <iframe
+              src={`https://www.youtube.com/embed/${HERO_VIDEO_ID}?rel=0&modestbranding=1`}
+              title="Yalla CPHQ – Healthcare Quality"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full"
+            />
           </div>
         </div>
       </div>

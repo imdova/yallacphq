@@ -1,8 +1,10 @@
 import {
   HomeHeader,
   Hero,
-  ProgramsSection,
-  ElevatingSection,
+  StatsSection,
+  CoursesSection,
+  WhyChooseSection,
+  WebinarsPromoSection,
   TestimonialSection,
   CTASection,
   HomeFooter,
@@ -14,8 +16,10 @@ export default function HomePage() {
       <HomeHeader />
       <main>
         <Hero />
-        <ProgramsSection />
-        <ElevatingSection />
+        <StatsSection />
+        <CoursesSection />
+        <WhyChooseSection />
+        <WebinarsPromoSection />
         <TestimonialSection />
         <CTASection />
         <HomeFooter />

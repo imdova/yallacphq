@@ -26,10 +26,12 @@ export function CoursesFilters({
   value,
   onChange,
   className,
+  hasActiveFilters,
 }: {
   value?: Partial<FilterState>;
   onChange?: (state: FilterState) => void;
   className?: string;
+  hasActiveFilters?: boolean;
 }) {
   const [internal, setInternal] = React.useState<FilterState>(defaultFilters);
   const state = value !== undefined ? { ...defaultFilters, ...value } : internal;
@@ -49,26 +51,39 @@ export function CoursesFilters({
     onChange?.(next);
   };
 
+  const clearAll = () => setState(defaultFilters);
+
   return (
     <aside className={cn("space-y-6", className)} aria-label="Filters">
-      <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-zinc-500" aria-hidden />
-        <h2 className="font-semibold text-zinc-900">Filters</h2>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-zinc-500" aria-hidden />
+          <h2 className="font-semibold text-zinc-900">Filters</h2>
+        </div>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAll}
+            className="text-xs font-medium text-gold hover:underline"
+          >
+            Clear all
+          </button>
+        )}
       </div>
       <div>
-        <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Level
         </h3>
         <ul className="space-y-2">
           {levels.map((item) => (
-            <li key={item} className="flex items-center gap-2">
+            <li key={item} className="flex items-center gap-2.5">
               <Checkbox
                 id={`level-${item}`}
                 checked={state.level.includes(item)}
                 onCheckedChange={(checked) => update("level", item, checked === true)}
-                className="data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                className="rounded-md data-[state=checked]:bg-gold data-[state=checked]:border-gold"
               />
-              <Label htmlFor={`level-${item}`} className="cursor-pointer text-sm font-normal text-zinc-700">
+              <Label htmlFor={`level-${item}`} className="cursor-pointer text-sm text-zinc-700">
                 {item}
               </Label>
             </li>
@@ -76,19 +91,19 @@ export function CoursesFilters({
         </ul>
       </div>
       <div>
-        <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Duration
         </h3>
         <ul className="space-y-2">
           {durations.map((item) => (
-            <li key={item} className="flex items-center gap-2">
+            <li key={item} className="flex items-center gap-2.5">
               <Checkbox
                 id={`duration-${item}`}
                 checked={state.duration.includes(item)}
                 onCheckedChange={(checked) => update("duration", item, checked === true)}
-                className="data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                className="rounded-md data-[state=checked]:bg-gold data-[state=checked]:border-gold"
               />
-              <Label htmlFor={`duration-${item}`} className="cursor-pointer text-sm font-normal text-zinc-700">
+              <Label htmlFor={`duration-${item}`} className="cursor-pointer text-sm text-zinc-700">
                 {item}
               </Label>
             </li>
@@ -96,19 +111,19 @@ export function CoursesFilters({
         </ul>
       </div>
       <div>
-        <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
-          Certification Type
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          Certification
         </h3>
         <ul className="space-y-2">
           {certTypes.map((item) => (
-            <li key={item} className="flex items-center gap-2">
+            <li key={item} className="flex items-center gap-2.5">
               <Checkbox
                 id={`cert-${item}`}
                 checked={state.certification.includes(item)}
                 onCheckedChange={(checked) => update("certification", item, checked === true)}
-                className="data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                className="rounded-md data-[state=checked]:bg-gold data-[state=checked]:border-gold"
               />
-              <Label htmlFor={`cert-${item}`} className="cursor-pointer text-sm font-normal text-zinc-700">
+              <Label htmlFor={`cert-${item}`} className="cursor-pointer text-sm text-zinc-700">
                 {item}
               </Label>
             </li>

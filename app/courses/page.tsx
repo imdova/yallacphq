@@ -7,15 +7,7 @@ import { CoursesFilters, type FilterState } from "@/components/features/courses/
 import { CourseCard } from "@/components/features/courses/CourseCard";
 import { CoursesFooter } from "@/components/features/courses/CoursesFooter";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { fetchCourses } from "@/lib/dal/courses";
-import { SORT_OPTIONS } from "@/constants/courses";
 import type { Course } from "@/types/course";
 
 const INITIAL_COUNT = 12;
@@ -26,7 +18,7 @@ export default function CoursesPage() {
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
   const [category, setCategory] = React.useState("all");
-  const [sort, setSort] = React.useState("newest");
+  const [sort] = React.useState("newest");
   const [displayCount, setDisplayCount] = React.useState(INITIAL_COUNT);
   const [filters, setFilters] = React.useState<FilterState>({
     level: [],
@@ -103,8 +95,11 @@ export default function CoursesPage() {
   const visible = filtered.slice(0, displayCount);
   const hasMore = displayCount < filtered.length;
 
+  const hasActiveFilters =
+    filters.level.length > 0 || filters.duration.length > 0 || filters.certification.length > 0;
+
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen overflow-x-hidden bg-zinc-100">
       <CoursesHeader />
       <main>
         <CoursesHero
@@ -113,60 +108,65 @@ export default function CoursesPage() {
           category={category}
           onCategoryChange={setCategory}
         />
-        <div className="container py-8">
-          <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
+        <div className="container px-4 py-6 sm:py-8 md:px-6">
+          <div className="grid gap-6 lg:grid-cols-[260px_1fr] lg:gap-10">
             <div className="lg:sticky lg:top-24 lg:self-start">
-              <div className="rounded-lg border border-zinc-200 bg-white p-4">
-                <CoursesFilters value={filters} onChange={setFilters} />
+              <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <CoursesFilters value={filters} onChange={setFilters} hasActiveFilters={hasActiveFilters} />
               </div>
             </div>
             <div className="min-w-0">
-              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-zinc-600">
-                  Showing {visible.length} high-quality course{visible.length !== 1 ? "s" : ""}
-                  {filtered.length !== courses.length && ` (filtered from ${courses.length})`}
-                </p>
-                <Select value={sort} onValueChange={setSort}>
-                  <SelectTrigger className="w-[180px] border-zinc-300">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map(({ value, label }) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               {loading ? (
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={i}
-                      className="h-80 animate-pulse rounded-lg border border-zinc-200 bg-zinc-100"
-                    />
+                      className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white"
+                    >
+                      <div className="aspect-video animate-pulse bg-zinc-200" />
+                      <div className="space-y-3 p-4">
+                        <div className="h-4 w-3/4 animate-pulse rounded bg-zinc-200" />
+                        <div className="h-3 w-1/2 animate-pulse rounded bg-zinc-100" />
+                        <div className="mt-4 flex gap-2">
+                          <div className="h-9 flex-1 animate-pulse rounded-lg bg-zinc-100" />
+                          <div className="h-9 w-9 animate-pulse rounded-lg bg-zinc-100" />
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : visible.length === 0 ? (
-                <div className="rounded-lg border border-zinc-200 bg-white py-16 text-center text-zinc-500">
-                  No courses match your filters. Try adjusting search or filters.
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white py-16 px-6 text-center">
+                  <p className="text-lg font-medium text-zinc-900">No courses match your filters</p>
+                  <p className="mt-2 max-w-sm text-sm text-zinc-500">
+                    Try a different search term or clear some filters to see more results.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="mt-6 rounded-xl border-zinc-200"
+                    onClick={() => {
+                      setCategory("all");
+                      setFilters({ level: [], duration: [], certification: [] });
+                    }}
+                  >
+                    Clear filters
+                  </Button>
                 </div>
               ) : (
                 <>
-                  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                     {visible.map((course) => (
                       <CourseCard key={course.id} course={course} />
                     ))}
                   </div>
                   {hasMore && (
-                    <div className="mt-10 text-center">
+                    <div className="mt-10 flex justify-center">
                       <Button
                         variant="outline"
-                        className="rounded-lg border-gold text-gold-foreground hover:bg-gold/10 hover:text-gold font-semibold px-8 py-6"
+                        className="rounded-xl border-gold px-8 py-6 font-semibold text-gold hover:bg-gold/10 hover:text-gold"
                         onClick={() => setDisplayCount((n) => n + LOAD_MORE_COUNT)}
                       >
-                        Load More Courses
+                        Load more courses
                       </Button>
                     </div>
                   )}

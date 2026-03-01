@@ -11,9 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, ChevronDown } from "lucide-react";
+import { Menu, ChevronDown, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OFFERS_DROPDOWN_ITEMS, WEBINARS_DROPDOWN_ITEMS } from "@/constants";
+import { OFFERS_DROPDOWN_ITEMS, WEBINARS_DROPDOWN_ITEMS, ROUTES } from "@/constants";
 
 const navLinks = [
   { href: "/courses", label: "All Courses" },
@@ -27,12 +27,15 @@ export function CoursesHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-200/80 bg-white/95 backdrop-blur-sm">
+      <div className="container flex h-14 items-center justify-between gap-4 px-4 md:px-6">
         <Link
           href="/"
-          className="text-lg font-semibold uppercase tracking-wide text-zinc-900"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-zinc-900"
         >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold text-sm font-bold text-gold-foreground">
+            Y
+          </span>
           Yalla CPHQ
         </Link>
         <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
@@ -89,8 +92,8 @@ export function CoursesHeader() {
                 key={href}
                 href={href}
                 className={cn(
-                  "text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900",
-                  isActive && "text-zinc-900"
+                  "text-sm font-medium transition-colors hover:text-zinc-900",
+                  isActive ? "text-zinc-900" : "text-zinc-600"
                 )}
               >
                 {label}
@@ -98,7 +101,18 @@ export function CoursesHeader() {
             );
           })}
         </nav>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            aria-label="Cart"
+          >
+            <Link href={ROUTES.CHECKOUT}>
+              <ShoppingCart className="h-5 w-5" />
+            </Link>
+          </Button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon" className="text-zinc-600">
@@ -152,6 +166,14 @@ export function CoursesHeader() {
                   </Link>
                 ))}
                 <div className="flex flex-col gap-2 pt-4">
+                  <Link
+                    href={ROUTES.CHECKOUT}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Cart
+                  </Link>
                   <Link href="/dashboard" onClick={() => setOpen(false)} className="text-zinc-600 hover:text-zinc-900">
                     Login
                   </Link>
@@ -169,7 +191,7 @@ export function CoursesHeader() {
           </Link>
           <Button
             asChild
-            className="hidden bg-gold text-gold-foreground hover:bg-gold/90 font-semibold md:inline-flex"
+            className="hidden rounded-lg bg-gold font-semibold text-gold-foreground hover:bg-gold/90 md:inline-flex"
           >
             <Link href="/#enroll">Join Now</Link>
           </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -186,7 +187,7 @@ export function Webinar1SpotForm() {
                     const cur = COUNTRY_CODES.find((c) => c.value === countryCode);
                     return cur ? (
                       <span className="flex items-center gap-2">
-                        <img
+                        <Image
                           src={`${FLAG_CDN}/24x18/${cur.cc}.png`}
                           alt=""
                           width={24}
@@ -205,7 +206,7 @@ export function Webinar1SpotForm() {
                 {COUNTRY_CODES.map(({ value, label, cc }) => (
                   <SelectItem key={value} value={value}>
                     <span className="flex items-center gap-2">
-                      <img
+                      <Image
                         src={`${FLAG_CDN}/24x18/${cc}.png`}
                         alt=""
                         width={24}

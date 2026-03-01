@@ -11,6 +11,11 @@ export interface Course {
   instructorName: string;
   instructorTitle: string;
   durationHours: number;
+  enrolledCount?: number;
+  /** Regular price in dollars (e.g. 199.99). */
+  priceRegular?: number;
+  /** Sale price in dollars; if set, shown instead of regular. */
+  priceSale?: number;
   level?: CourseLevel;
   certificationType?: CertificationType;
   imagePlaceholder?: string;

@@ -12,17 +12,19 @@ import {
 } from "lucide-react";
 
 const accounts = [
-  { href: "/dashboard", label: "Login" },
-  { href: "#register", label: "Register" },
-  { href: "#orders", label: "Order Status" },
-  { href: "#account", label: "Manage Account" },
+  { href: "/dashboard", label: "Student Portal" },
+  { href: "/login", label: "Login" },
+  { href: "/signup", label: "Register" },
+  { href: "/checkout", label: "Checkout" },
 ];
 
 const resources = [
-  { href: "#quote", label: "Get a Quote" },
-  { href: "#support", label: "Support" },
-  { href: "#privacy", label: "Privacy Policy" },
-  { href: "#terms", label: "Terms & Conditions" },
+  { href: "/courses", label: "All Courses" },
+  { href: "/webinars", label: "Webinars" },
+  { href: "/offers", label: "Offers" },
+  { href: "#", label: "Support" },
+  { href: "#", label: "Privacy Policy" },
+  { href: "#", label: "Terms" },
 ];
 
 const social = [
@@ -34,21 +36,21 @@ const social = [
 
 export function HomeFooter() {
   return (
-    <footer className="bg-black text-white">
-      <div className="container py-12 md:py-16">
+    <footer className="border-t border-zinc-800 bg-zinc-950 text-white">
+      <div className="container px-4 py-12 md:px-6 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            <p className="text-lg font-semibold uppercase tracking-wide">Yalla CPHQ</p>
-            <p className="text-sm text-white/70">
+            <p className="text-lg font-semibold tracking-tight">Yalla CPHQ</p>
+            <p className="text-sm text-zinc-400">
               Healthcare quality education and CPHQ certification preparation for professionals
               worldwide.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {social.map(({ href, icon: Icon }) => (
                 <a
                   key={href}
                   href={href}
-                  className="text-white/60 transition-colors hover:text-white"
+                  className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-800 hover:text-gold"
                   aria-label={Icon.name}
                 >
                   <Icon className="h-5 w-5" />
@@ -57,15 +59,15 @@ export function HomeFooter() {
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
-              Accounts
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Account
             </h3>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-3 space-y-2">
               {accounts.map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-white/70 transition-colors hover:text-white"
+                    className="text-sm text-zinc-400 transition hover:text-white"
                   >
                     {label}
                   </Link>
@@ -74,15 +76,15 @@ export function HomeFooter() {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Resources
             </h3>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-3 space-y-2">
               {resources.map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-white/70 transition-colors hover:text-white"
+                    className="text-sm text-zinc-400 transition hover:text-white"
                   >
                     {label}
                   </Link>
@@ -91,38 +93,35 @@ export function HomeFooter() {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
-              Contact Us
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Newsletter
             </h3>
-            <form className="mt-4 flex gap-2" onSubmit={(e) => e.preventDefault()}>
+            <p className="mt-2 text-sm text-zinc-400">
+              Get CPHQ tips and updates.
+            </p>
+            <form className="mt-3 flex gap-2" onSubmit={(e) => e.preventDefault()}>
               <Input
                 type="email"
-                placeholder="Email Address"
-                className="border-white/20 bg-white/5 text-white placeholder:text-white/50 focus-visible:ring-gold"
+                placeholder="Your email"
+                className="rounded-lg border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500 focus-visible:ring-gold"
               />
               <Button
                 type="submit"
                 size="icon"
-                className="shrink-0 bg-gold text-gold-foreground hover:bg-gold/90"
-                aria-label="Send"
+                className="shrink-0 rounded-lg bg-gold text-gold-foreground hover:bg-gold/90"
+                aria-label="Subscribe"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </form>
           </div>
         </div>
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-sm text-white/60 md:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-zinc-800 pt-8 text-sm text-zinc-500 md:flex-row">
           <p>© 2026 Yalla CPHQ. All rights reserved.</p>
-          <div className="flex gap-6">
-            <Link href="#privacy" className="hover:text-white">
-              Privacy Policy
-            </Link>
-            <Link href="#terms" className="hover:text-white">
-              Terms of Service
-            </Link>
-            <Link href="#cookies" className="hover:text-white">
-              Cookie Policy
-            </Link>
+          <div className="flex flex-wrap justify-center gap-6">
+            <Link href="#" className="transition hover:text-white">Privacy</Link>
+            <Link href="#" className="transition hover:text-white">Terms</Link>
+            <Link href="#" className="transition hover:text-white">Cookies</Link>
           </div>
         </div>
       </div>
