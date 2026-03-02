@@ -1,8 +1,10 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import { Search, Lightbulb } from "lucide-react";
+import { ArrowLeft, Search, Lightbulb } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { href: "/dashboard/courses", label: "My Courses" },
@@ -11,15 +13,31 @@ const navLinks = [
   { href: "/dashboard/support", label: "Help Center" },
 ];
 
-export function LessonPageHeader() {
+export function LessonPageHeader({ sidebarTrigger }: { sidebarTrigger?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center gap-6 border-b border-zinc-200 bg-white px-4 md:px-6">
-      <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
+    <header className="sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur md:px-6">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="md:hidden">{sidebarTrigger}</div>
+        <Link href="/dashboard" className="flex items-center gap-2">
         <span className="flex h-8 w-8 items-center justify-center rounded-md bg-gold text-gold-foreground">
           <Lightbulb className="h-4 w-4" />
         </span>
         <span className="font-semibold text-zinc-900">Yalla CPHQ</span>
       </Link>
+      </div>
+
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="hidden md:inline-flex text-zinc-600 hover:text-zinc-900"
+      >
+        <Link href="/dashboard/courses" className="inline-flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to courses
+        </Link>
+      </Button>
+
       <nav className="hidden items-center gap-6 md:flex" aria-label="Main">
         {navLinks.map(({ href, label }) => (
           <Link
@@ -31,7 +49,7 @@ export function LessonPageHeader() {
           </Link>
         ))}
       </nav>
-      <div className="flex-1 max-w-sm">
+      <div className="hidden flex-1 max-w-sm lg:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <Input

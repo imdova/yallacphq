@@ -23,7 +23,7 @@ export const ROUTES = {
 } as const;
 
 export const OFFERS_DROPDOWN_ITEMS = [
-  { href: "/offers/cphq-register-1", label: "CPHQ Register 1" },
+  { href: "/offers/cphq-register-1", label: "Start your journey today" },
   { href: "/offers/cphq-free-lecture", label: "CPHQ Free Lecture" },
   { href: "/offers/cphq-offer", label: "CPHQ Offer" },
 ] as const;

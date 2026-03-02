@@ -1,5 +1,6 @@
-import { Play, GraduationCap, RefreshCw, Smartphone } from "lucide-react";
+import { GraduationCap, RefreshCw, Smartphone } from "lucide-react";
 import { Register1Form } from "@/components/features/offers/Register1Form";
+import { YoutubeHeroVideo } from "@/components/features/offers/YoutubeHeroVideo";
 
 export default function CPHQRegister1Page() {
   return (
@@ -7,34 +8,25 @@ export default function CPHQRegister1Page() {
       {/* Hero */}
       <section className="border-b border-zinc-200 bg-white/90 py-12 md:py-16">
         <div className="container">
-          <div className="grid gap-10 lg:grid-cols-2 lg:gap-12 lg:items-start">
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
             {/* Left: Promo content + video */}
             <div className="space-y-6">
               <span className="inline-block rounded-full bg-gold px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gold-foreground">
                 Free Masterclass 2024
               </span>
-              <h1 className="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl lg:text-5xl">
-                Unlock Your Healthcare{" "}
-                <span className="font-serif text-gold">Leadership</span>
+              <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:whitespace-nowrap md:text-4xl lg:text-5xl">
+                Unlock Your Healthcare
               </h1>
-              <p className="max-w-lg text-zinc-600 leading-relaxed">
-                Join 5,000+ professionals mastering the CPHQ exam with Yalla CPHQ&apos;s proven
-                framework. Learn how to pass on your first attempt.
-              </p>
               <div className="space-y-2">
-                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-teal-dark/90 aspect-video flex items-center justify-center">
-                  <button
-                    type="button"
-                    className="flex h-20 w-20 items-center justify-center rounded-full bg-gold/90 text-gold-foreground shadow-lg transition hover:bg-gold"
-                    aria-label="Play video"
-                  >
-                    <Play className="h-10 w-10 fill-current pl-1" />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between rounded-b-lg bg-zinc-800 px-4 py-2 text-sm text-white">
-                  <span>Video: Invitation to Excellence</span>
-                  <span>12:45 mins</span>
-                </div>
+                <YoutubeHeroVideo
+                  url="https://www.youtube.com/watch?v=9JJYT8ajOKg"
+                  title="Invitation to Excellence"
+                  className="bg-teal-dark/90"
+                />
+                <p className="max-w-lg leading-relaxed text-zinc-600">
+                  Join 5,000+ professionals mastering the CPHQ exam with Yalla CPHQ&apos;s proven
+                  framework. Learn how to pass on your first attempt.
+                </p>
               </div>
             </div>
 

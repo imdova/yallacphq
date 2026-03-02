@@ -34,7 +34,13 @@ const modules = [
   },
 ];
 
-export function LessonSidebar() {
+export function LessonSidebar({
+  variant = "sidebar",
+  onNavigate,
+}: {
+  variant?: "sidebar" | "sheet";
+  onNavigate?: () => void;
+}) {
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({
     m1: false,
     m2: true,
@@ -46,16 +52,23 @@ export function LessonSidebar() {
   };
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-white">
-      <div className="border-b border-zinc-200 p-4">
-        <h3 className="text-sm font-semibold text-zinc-900">Course Progress</h3>
+    <aside
+      className={cn(
+        "flex shrink-0 flex-col bg-white",
+        variant === "sidebar" ? "w-72 border-r border-zinc-200" : "w-full"
+      )}
+    >
+      <div className={cn("border-b border-zinc-200", variant === "sidebar" ? "p-4" : "p-5")}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-zinc-900">Course Progress</h3>
+          <span className="text-xs font-semibold text-zinc-600">65%</span>
+        </div>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
           <div className="h-full w-[65%] rounded-full bg-gold" />
         </div>
-        <p className="mt-2 text-sm text-zinc-600">65% Completed</p>
-        <p className="text-xs text-zinc-500">12/18 Lessons</p>
+        <p className="mt-2 text-sm text-zinc-600">12/18 lessons completed</p>
       </div>
-      <nav className="flex-1 overflow-auto p-2">
+      <nav className={cn("flex-1 overflow-auto", variant === "sidebar" ? "p-2" : "p-3")} aria-label="Course modules">
         {modules.map((mod) => (
           <div key={mod.id} className="py-1">
             <button
@@ -81,6 +94,7 @@ export function LessonSidebar() {
                   <Link
                     key={lesson.id}
                     href={lesson.locked ? "#" : "/dashboard/courses/lesson"}
+                    onClick={lesson.locked ? undefined : onNavigate}
                     className={cn(
                       "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm",
                       lesson.current
@@ -88,6 +102,7 @@ export function LessonSidebar() {
                         : "text-zinc-600 hover:bg-zinc-50",
                       lesson.locked && "pointer-events-none opacity-60"
                     )}
+                    aria-current={lesson.current ? "page" : undefined}
                   >
                     {lesson.locked ? (
                       <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />

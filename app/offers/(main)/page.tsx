@@ -9,9 +9,7 @@ export default function OffersPage() {
     <div className="min-h-screen">
       <div className="border-b border-zinc-200 bg-white">
         <div className="container py-12 md:py-16">
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">
-            Offers
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">Offers</h1>
           <p className="mt-2 text-zinc-600">
             Special offers and resources to support your CPHQ journey.
           </p>
@@ -24,7 +22,8 @@ export default function OffersPage() {
               <CardHeader>
                 <CardTitle className="text-lg">{label}</CardTitle>
                 <CardDescription>
-                  {label === "CPHQ Register 1" && "Register for the CPHQ preparation program."}
+                  {label === "Start your journey today" &&
+                    "Register for the CPHQ preparation program."}
                   {label === "CPHQ Free Lecture" && "Watch a free introductory CPHQ lecture."}
                   {label === "CPHQ Offer" && "Limited-time offer on CPHQ exam prep."}
                 </CardDescription>
