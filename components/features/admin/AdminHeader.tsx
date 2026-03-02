@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin": { title: "Overview", subtitle: "KPIs, activity, and quick actions" },
-  "/admin/users": { title: "Users", subtitle: "Create, edit roles, and manage access" },
+  "/admin/students": { title: "Students", subtitle: "Manage students and roles" },
   "/admin/courses": { title: "Courses", subtitle: "Catalog, pricing, and publishing" },
   "/admin/courses/new": { title: "New course", subtitle: "Create course in 2 steps" },
   "/admin/orders": { title: "Orders", subtitle: "Payments and checkout activity" },
@@ -45,7 +45,7 @@ export function AdminHeader() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               type="search"
-              placeholder="Search users, courses, orders…"
+              placeholder="Search students, courses, orders…"
               className="h-9 rounded-xl border-zinc-200 bg-zinc-50 pl-9 pr-4 text-sm"
             />
           </div>

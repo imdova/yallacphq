@@ -6,24 +6,17 @@ import { ArrowLeft, Search, Lightbulb } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const navLinks = [
-  { href: "/dashboard/courses", label: "My Courses" },
-  { href: "/dashboard/exams", label: "Mock Exams" },
-  { href: "/dashboard/study-groups", label: "Study Groups" },
-  { href: "/dashboard/support", label: "Help Center" },
-];
-
 export function LessonPageHeader({ sidebarTrigger }: { sidebarTrigger?: React.ReactNode }) {
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur md:px-6">
       <div className="flex items-center gap-2 shrink-0">
         <div className="md:hidden">{sidebarTrigger}</div>
         <Link href="/dashboard" className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-gold text-gold-foreground">
-          <Lightbulb className="h-4 w-4" />
-        </span>
-        <span className="font-semibold text-zinc-900">Yalla CPHQ</span>
-      </Link>
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-gold text-gold-foreground">
+            <Lightbulb className="h-4 w-4" />
+          </span>
+          <span className="font-semibold text-zinc-900">Yalla CPHQ</span>
+        </Link>
       </div>
 
       <Button
@@ -38,19 +31,10 @@ export function LessonPageHeader({ sidebarTrigger }: { sidebarTrigger?: React.Re
         </Link>
       </Button>
 
-      <nav className="hidden items-center gap-6 md:flex" aria-label="Main">
-        {navLinks.map(({ href, label }) => (
-          <Link
-            key={href}
-            href={href}
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-      <div className="hidden flex-1 max-w-sm lg:block">
-        <div className="relative">
+      <div className="flex-1" />
+
+      <div className="hidden items-center gap-4 lg:flex">
+        <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <Input
             type="search"
@@ -58,9 +42,14 @@ export function LessonPageHeader({ sidebarTrigger }: { sidebarTrigger?: React.Re
             className="h-9 rounded-lg border-zinc-200 bg-zinc-50 pl-9 pr-4 text-sm"
           />
         </div>
+        <div className="text-right">
+          <p className="text-sm font-semibold text-zinc-900">Ahmed Hassan</p>
+          <p className="text-xs text-zinc-500">Student ID: #8821</p>
+        </div>
       </div>
+
       <div className="flex items-center gap-3 shrink-0">
-        <div className="hidden text-right sm:block">
+        <div className="hidden text-right sm:block lg:hidden">
           <p className="text-sm font-semibold text-zinc-900">Ahmed Hassan</p>
           <p className="text-xs text-zinc-500">Student ID: #8821</p>
         </div>

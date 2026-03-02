@@ -13,3 +13,4 @@
 export * from "./user";
 export * from "./task";
 export * from "./courses";
+export * from "./promo-codes";

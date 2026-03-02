@@ -86,8 +86,8 @@ export function AdminOverviewView() {
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
               <Button asChild className="w-full justify-between rounded-xl bg-gold text-gold-foreground hover:bg-gold/90">
-                <Link href="/admin/users">
-                  Manage users
+                <Link href="/admin/students">
+                  Manage students
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

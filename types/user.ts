@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   role: "admin" | "member" | "viewer";
+  enrolled?: boolean;
   createdAt: string;
   updatedAt: string;
 }

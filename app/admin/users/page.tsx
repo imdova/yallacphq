@@ -1,8 +1,6 @@
-"use client";
-
-import { AdminUsersView } from "@/components/features/admin/AdminUsersView";
+import { redirect } from "next/navigation";
 
 export default function AdminUsersPage() {
-  return <AdminUsersView />;
+  redirect("/admin/students");
 }
 

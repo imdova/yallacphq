@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 type FormFieldProps = {
   name: string;
-  label: string;
+  label?: string;
   required?: boolean;
   children: (props: {
     id: string;
@@ -27,10 +27,12 @@ export function FormField({ name, label, required, children, className }: FormFi
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Label htmlFor={id}>
-        {label}
-        {required && <span className="text-destructive ml-0.5">*</span>}
-      </Label>
+      {label ? (
+        <Label htmlFor={id}>
+          {label}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </Label>
+      ) : null}
       {children({
         id,
         error,

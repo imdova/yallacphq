@@ -11,18 +11,34 @@ export interface Course {
   description?: string;
   whoCanAttend?: string;
   whyYalla?: string;
+  includes?: string;
   instructorName: string;
   instructorTitle: string;
   durationHours: number;
   enrolledCount?: number;
+  lessons?: number;
+  status?: "draft" | "published";
+  visibility?: "public" | "private";
+  enableEnrollment?: boolean;
+  requireApproval?: boolean;
+  socialSharing?: boolean;
   /** Regular price in dollars (e.g. 199.99). */
   priceRegular?: number;
   /** Sale price in dollars; if set, shown instead of regular. */
   priceSale?: number;
+  availability?: "permanent" | "1_month" | "3_months" | "6_months" | "1_year" | "custom";
+  enablePromoCode?: boolean;
+  currency?: string;
+  discountPercent?: number;
   level?: CourseLevel;
   certificationType?: CertificationType;
   imagePlaceholder?: string;
   imageUrl?: string;
+  instructorImageUrl?: string;
+  videoPreviewUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
 }
 
 export interface CreateCourseInput {
@@ -31,16 +47,32 @@ export interface CreateCourseInput {
   description?: string;
   whoCanAttend?: string;
   whyYalla?: string;
+  includes?: string;
   instructorName: string;
   instructorTitle: string;
   durationHours: number;
+  status?: "draft" | "published";
+  visibility?: "public" | "private";
+  enableEnrollment?: boolean;
+  requireApproval?: boolean;
+  socialSharing?: boolean;
   priceRegular?: number;
   priceSale?: number;
+  availability?: "permanent" | "1_month" | "3_months" | "6_months" | "1_year" | "custom";
+  enablePromoCode?: boolean;
+  currency?: string;
+  discountPercent?: number;
   level?: CourseLevel;
   certificationType?: CertificationType;
   enrolledCount?: number;
+  lessons?: number;
   imagePlaceholder?: string;
   imageUrl?: string;
+  instructorImageUrl?: string;
+  videoPreviewUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
 }
 
 export type UpdateCourseInput = Partial<CreateCourseInput>;

@@ -7,6 +7,7 @@ const store: User[] = [
     email: "sarah@example.com",
     name: "Sarah Chen",
     role: "admin",
+    enrolled: true,
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },
@@ -15,6 +16,7 @@ const store: User[] = [
     email: "omar@example.com",
     name: "Omar Hassan",
     role: "member",
+    enrolled: true,
     createdAt: "2024-02-01T12:00:00Z",
     updatedAt: "2024-02-01T12:00:00Z",
   },
@@ -23,6 +25,7 @@ const store: User[] = [
     email: "lina@example.com",
     name: "Lina Al-Rashid",
     role: "viewer",
+    enrolled: false,
     createdAt: "2024-02-10T08:30:00Z",
     updatedAt: "2024-02-10T08:30:00Z",
   },
@@ -48,6 +51,7 @@ export async function createUser(data: CreateUserInput): Promise<User> {
   const newUser: User = {
     id: String(store.length + 1),
     ...data,
+    enrolled: (data as Partial<User>).enrolled ?? false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

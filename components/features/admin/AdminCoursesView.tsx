@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -19,24 +19,32 @@ import { CourseUpsertModal } from "@/components/features/admin/CourseUpsertModal
 import { createCourse, fetchCourses, removeCourse, updateCourse } from "@/lib/dal";
 import type { Course } from "@/types/course";
 import type { CreateCourseSchema } from "@/lib/validations/course";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 
 type AccessFilter = "all" | "free" | "paid";
+type TagFilter = "all" | string;
+
+function formatCurrency(amount: number, currency?: string) {
+  if (amount === 0) return "Free";
+  const cur = currency?.trim() || "USD";
+  const symbol = cur === "EGP" ? "EGP" : cur === "USD" ? "$" : cur;
+  return symbol === "$" ? `$${amount.toFixed(2)}` : `${symbol} ${amount.toFixed(2)}`;
+}
 
 function formatPrice(c: Course) {
   const hasSale =
     c.priceSale != null && c.priceSale > 0 && (c.priceRegular ?? 0) > (c.priceSale ?? 0);
   const display = hasSale ? c.priceSale! : (c.priceRegular ?? 0);
-  const label = display === 0 ? "Free" : `$${display.toFixed(2)}`;
-  const strike = hasSale ? `$${(c.priceRegular ?? 0).toFixed(2)}` : null;
+  const label = formatCurrency(display, c.currency);
+  const strike = hasSale ? formatCurrency(c.priceRegular ?? 0, c.currency) : null;
   return { label, strike };
 }
 
 export function AdminCoursesView() {
   const [courses, setCourses] = React.useState<Course[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [query, setQuery] = React.useState("");
-  const [access, setAccess] = React.useState<AccessFilter>("all");
+  const [access, setAccess] = React.useState<AccessFilter>("all"); // used as "Type" in UI (Free/Paid)
+  const [tag, setTag] = React.useState<TagFilter>("all"); // "Category"
 
   const [mode, setMode] = React.useState<"create" | "edit">("create");
   const [editing, setEditing] = React.useState<Course | null>(null);
@@ -62,20 +70,30 @@ export function AdminCoursesView() {
     };
   }, []);
 
+  const tagOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    courses.forEach((c) => set.add(c.tag));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [courses]);
+
+  const stats = React.useMemo(() => {
+    const total = courses.length;
+    const published = courses.filter((c) => c.status === "published").length;
+    const draft = courses.filter((c) => (c.status ?? "draft") === "draft").length;
+    const free = courses.filter((c) => (c.priceSale ?? c.priceRegular ?? 0) === 0).length;
+    const enrolled = courses.reduce((acc, c) => acc + (c.enrolledCount ?? 0), 0);
+    return { total, published, draft, free, enrolled };
+  }, [courses]);
+
   const filtered = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
     return courses.filter((c) => {
       const isFree = (c.priceSale ?? c.priceRegular ?? 0) === 0;
       if (access === "free" && !isFree) return false;
       if (access === "paid" && isFree) return false;
-      if (!q) return true;
-      return (
-        c.title.toLowerCase().includes(q) ||
-        c.tag.toLowerCase().includes(q) ||
-        c.instructorName.toLowerCase().includes(q)
-      );
+      if (tag !== "all" && c.tag !== tag) return false;
+      return true;
     });
-  }, [courses, query, access]);
+  }, [courses, access, tag]);
 
   const handleUpsert = async (data: CreateCourseSchema) => {
     const payload = {
@@ -112,44 +130,138 @@ export function AdminCoursesView() {
     }
   };
 
+  const duplicateCourse = React.useCallback(async (course: Course) => {
+    const created = await createCourse({
+      title: `${course.title} (Copy)`,
+      tag: course.tag,
+      instructorName: course.instructorName,
+      instructorTitle: course.instructorTitle,
+      durationHours: course.durationHours,
+      priceRegular: course.priceRegular ?? 0,
+      priceSale: course.priceSale,
+    });
+    setCourses((prev) => [...prev, created]);
+  }, []);
+
   const columns: ColumnDef<Course>[] = React.useMemo(
     () => [
       {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        size: 40,
+      },
+      {
         accessorKey: "title",
         header: "Course",
-        cell: ({ row }) => (
-          <div className="min-w-0">
-            <div className="truncate font-semibold text-zinc-900">{row.original.title}</div>
-            <div className="truncate text-xs text-zinc-500">{row.original.instructorName}</div>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "tag",
-        header: "Tag",
-        cell: ({ row }) => (
-          <span className="rounded-lg bg-zinc-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-zinc-700">
-            {row.original.tag}
-          </span>
-        ),
-      },
-      {
-        id: "price",
-        header: "Price",
         cell: ({ row }) => {
-          const { label, strike } = formatPrice(row.original);
+          const c = row.original;
+          const imgSrc =
+            c.imageUrl?.startsWith("data:") || c.imageUrl?.startsWith("http")
+              ? c.imageUrl
+              : undefined;
           return (
-            <div className="text-sm">
-              {strike ? <span className="mr-2 text-xs text-zinc-400 line-through">{strike}</span> : null}
-              <span className="font-semibold text-zinc-900">{label}</span>
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="h-10 w-14 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+                {imgSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imgSrc} alt={c.title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-zinc-500">
+                    {c.title.trim().slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="truncate font-semibold text-zinc-900">{c.title}</div>
+              </div>
             </div>
           );
         },
       },
       {
-        accessorKey: "durationHours",
-        header: "Duration",
-        cell: ({ row }) => <span className="text-sm text-zinc-700">{row.original.durationHours}h</span>,
+        id: "date",
+        header: "Date",
+        cell: () => <span className="text-sm text-zinc-600">—</span>,
+      },
+      {
+        id: "category",
+        header: "Category",
+        cell: ({ row }) => <span className="text-sm text-zinc-700">{row.original.tag}</span>,
+      },
+      {
+        id: "price",
+        header: "Price",
+        cell: ({ row }) => {
+          const c = row.original;
+          const hasAnyPrice = c.priceRegular != null || c.priceSale != null;
+          const { label } = formatPrice(c);
+          return (
+            <span className="inline-flex items-center rounded-lg bg-zinc-100 px-2.5 py-1 text-sm font-semibold text-zinc-800">
+              {hasAnyPrice ? label : "No prices"}
+            </span>
+          );
+        },
+      },
+      {
+        id: "discount",
+        header: "Discount",
+        cell: ({ row }) => {
+          const c = row.original;
+          const pct =
+            c.discountPercent != null
+              ? c.discountPercent
+              : c.priceSale != null &&
+                  (c.priceRegular ?? 0) > 0 &&
+                  c.priceSale < (c.priceRegular ?? 0)
+                ? Math.round((1 - c.priceSale / (c.priceRegular ?? 1)) * 100)
+                : 0;
+          return pct > 0 ? (
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              {pct}%
+            </span>
+          ) : (
+            <span className="text-sm text-zinc-500">—</span>
+          );
+        },
+      },
+      {
+        id: "students",
+        header: "Students",
+        cell: ({ row }) => (
+          <span className="text-sm text-zinc-700">{row.original.enrolledCount ?? 0}</span>
+        ),
+      },
+      {
+        id: "revenue",
+        header: "Revenue",
+        cell: ({ row }) => {
+          const c = row.original;
+          const price = (c.priceSale ?? c.priceRegular ?? 0) || 0;
+          const enrolled = c.enrolledCount ?? 0;
+          const rev = price > 0 && enrolled > 0 ? price * enrolled : 0;
+          return rev > 0 ? (
+            <span className="text-sm text-zinc-700">{formatCurrency(rev, c.currency)}</span>
+          ) : (
+            <span className="text-sm text-zinc-500">—</span>
+          );
+        },
       },
       {
         id: "actions",
@@ -159,74 +271,142 @@ export function AdminCoursesView() {
           <div className="flex justify-end gap-2">
             <Button
               type="button"
-              size="sm"
+              size="icon"
               variant="outline"
-              className="rounded-xl border-zinc-200"
+              className="h-9 w-9 rounded-xl border-zinc-200"
               onClick={() => {
                 setMode("edit");
                 setEditing(row.original);
                 setModalOpen(true);
               }}
+              aria-label="Edit"
             >
               <Pencil className="h-4 w-4" />
-              Edit
             </Button>
             <Button
               type="button"
-              size="sm"
+              size="icon"
               variant="outline"
-              className="rounded-xl border-zinc-200 text-red-600 hover:text-red-700"
+              className="h-9 w-9 rounded-xl border-zinc-200"
+              onClick={() => void duplicateCourse(row.original)}
+              aria-label="Duplicate"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 rounded-xl border-zinc-200 text-red-600 hover:text-red-700"
               onClick={() => {
                 setDeleting(row.original);
                 setDeleteOpen(true);
               }}
+              aria-label="Delete"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
             </Button>
           </div>
         ),
       },
     ],
-    []
+    [duplicateCourse]
   );
 
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Total courses
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.total}</div>
+            <div className="mt-1 text-xs text-zinc-500">
+              {stats.published} published · {stats.draft} draft
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Enrollments
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.enrolled}</div>
+            <div className="mt-1 text-xs text-zinc-500">Total enrolled across courses</div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Free courses
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.free}</div>
+            <div className="mt-1 text-xs text-zinc-500">Price is 0</div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Paid courses
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.total - stats.free}</div>
+            <div className="mt-1 text-xs text-zinc-500">Regular or sale price &gt; 0</div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between space-y-0">
+        <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <CardTitle className="text-base">Courses</CardTitle>
-            <CardDescription>Manage catalog, pricing, and publishing.</CardDescription>
+            <CardDescription>
+              Modern overview with pricing, enrollments, and access controls.
+            </CardDescription>
           </div>
-          <Button asChild className="rounded-xl bg-gold text-gold-foreground hover:bg-gold/90">
-            <Link href="/admin/courses/new" className="inline-flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add course
-            </Link>
-          </Button>
         </CardHeader>
-        <CardContent className="pt-0 space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by title, tag, instructor…"
-                className="h-10 rounded-xl border-zinc-200 bg-white pl-9"
-              />
+        <CardContent className="space-y-4 pt-0">
+          <div className="grid gap-3 rounded-2xl border border-zinc-200 bg-white p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Category</div>
+              <Select value={tag} onValueChange={(v) => setTag(v as TagFilter)}>
+                <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {tagOptions.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={access} onValueChange={(v) => setAccess(v as AccessFilter)}>
-              <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200 bg-white sm:w-[180px]">
-                <SelectValue placeholder="Access" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-              </SelectContent>
-            </Select>
+
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Type</div>
+              <Select value={access} onValueChange={(v) => setAccess(v as AccessFilter)}>
+                <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              asChild
+              className="h-10 w-full rounded-xl bg-gold text-gold-foreground hover:bg-gold/90 sm:w-auto"
+            >
+              <Link href="/admin/courses/new" className="inline-flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add course
+              </Link>
+            </Button>
           </div>
 
           {loading ? (
@@ -238,9 +418,9 @@ export function AdminCoursesView() {
               columns={columns}
               data={filtered}
               pageSize={10}
-              enableRowSelection={false}
+              enableRowSelection={true}
               emptyMessage="No courses found."
-              className="[&_.rounded-md.border]:rounded-2xl [&_.rounded-md.border]:border-zinc-200"
+              className="[&_.rounded-md.border]:rounded-2xl [&_.rounded-md.border]:border-zinc-200 [&_thead]:bg-zinc-50/70"
             />
           )}
         </CardContent>
@@ -258,7 +438,11 @@ export function AdminCoursesView() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title="Delete course?"
-        description={deleting ? `This will permanently remove “${deleting.title}”.` : "This will permanently remove the course."}
+        description={
+          deleting
+            ? `This will permanently remove “${deleting.title}”.`
+            : "This will permanently remove the course."
+        }
         confirmText="Delete"
         confirmVariant="destructive"
         loading={deleteLoading}
@@ -267,4 +451,3 @@ export function AdminCoursesView() {
     </div>
   );
 }
-
