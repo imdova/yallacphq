@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   useForm,
+  FormProvider,
   type UseFormReturn,
   type DefaultValues,
   type FieldValues,
@@ -41,14 +42,16 @@ function FormInner<T extends FieldValues>({
   });
 
   return (
-    <form
-      ref={formRef}
-      className={cn("space-y-6", className)}
-      onSubmit={methods.handleSubmit(onSubmit)}
-      {...rest}
-    >
-      {children(methods)}
-    </form>
+    <FormProvider {...methods}>
+      <form
+        ref={formRef}
+        className={cn("space-y-6", className)}
+        onSubmit={methods.handleSubmit(onSubmit)}
+        {...rest}
+      >
+        {children(methods)}
+      </form>
+    </FormProvider>
   );
 }
 

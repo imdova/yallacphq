@@ -8,6 +8,9 @@ export interface Course {
   tag: string;
   rating: number;
   reviewCount: number;
+  description?: string;
+  whoCanAttend?: string;
+  whyYalla?: string;
   instructorName: string;
   instructorTitle: string;
   durationHours: number;
@@ -19,4 +22,25 @@ export interface Course {
   level?: CourseLevel;
   certificationType?: CertificationType;
   imagePlaceholder?: string;
+  imageUrl?: string;
 }
+
+export interface CreateCourseInput {
+  title: string;
+  tag: string;
+  description?: string;
+  whoCanAttend?: string;
+  whyYalla?: string;
+  instructorName: string;
+  instructorTitle: string;
+  durationHours: number;
+  priceRegular?: number;
+  priceSale?: number;
+  level?: CourseLevel;
+  certificationType?: CertificationType;
+  enrolledCount?: number;
+  imagePlaceholder?: string;
+  imageUrl?: string;
+}
+
+export type UpdateCourseInput = Partial<CreateCourseInput>;

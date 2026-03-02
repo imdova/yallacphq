@@ -1,10 +1,10 @@
-import type { Course } from "@/types/course";
+import type { Course, CreateCourseInput, UpdateCourseInput } from "@/types/course";
 import { delay } from "./delay";
 
 const INSTRUCTOR = "Dr Ahmed Habib";
 const INSTRUCTOR_TITLE = "CPHQ, Healthcare Quality Director";
 
-const store: Course[] = [
+let store: Course[] = [
   {
     id: "1",
     title: "CPHQ Comprehensive Review 2024",
@@ -191,4 +191,66 @@ export async function getCourseById(id: string): Promise<Course | null> {
   await delay(100);
   const course = store.find((c) => c.id === id);
   return course ? clone(course) : null;
+}
+
+function nextId(): string {
+  const max = store.reduce((acc, c) => Math.max(acc, Number(c.id) || 0), 0);
+  return String(max + 1);
+}
+
+export async function createCourse(data: CreateCourseInput): Promise<Course> {
+  await delay(200);
+  const course: Course = {
+    id: nextId(),
+    title: data.title,
+    tag: data.tag,
+    rating: 4.8,
+    reviewCount: 0,
+    description: data.description,
+    whoCanAttend: data.whoCanAttend,
+    whyYalla: data.whyYalla,
+    instructorName: data.instructorName,
+    instructorTitle: data.instructorTitle,
+    durationHours: data.durationHours,
+    enrolledCount: data.enrolledCount ?? 0,
+    priceRegular: data.priceRegular ?? 0,
+    priceSale: data.priceSale,
+    level: data.level,
+    certificationType: data.certificationType,
+    imagePlaceholder: data.imagePlaceholder,
+    imageUrl: data.imageUrl,
+  };
+  store = [...store, course];
+  return clone(course);
+}
+
+export async function updateCourse(id: string, data: UpdateCourseInput): Promise<Course | null> {
+  await delay(200);
+  const idx = store.findIndex((c) => c.id === id);
+  if (idx === -1) return null;
+  const prev = store[idx];
+  const updated: Course = {
+    ...prev,
+    ...data,
+    // ensure required fields remain
+    title: data.title ?? prev.title,
+    tag: data.tag ?? prev.tag,
+    instructorName: data.instructorName ?? prev.instructorName,
+    instructorTitle: data.instructorTitle ?? prev.instructorTitle,
+    durationHours: data.durationHours ?? prev.durationHours,
+    imagePlaceholder: data.imagePlaceholder ?? prev.imagePlaceholder,
+    imageUrl: data.imageUrl ?? prev.imageUrl,
+    description: data.description ?? prev.description,
+    whoCanAttend: data.whoCanAttend ?? prev.whoCanAttend,
+    whyYalla: data.whyYalla ?? prev.whyYalla,
+  };
+  store = store.map((c) => (c.id === id ? updated : c));
+  return clone(updated);
+}
+
+export async function deleteCourse(id: string): Promise<boolean> {
+  await delay(200);
+  const before = store.length;
+  store = store.filter((c) => c.id !== id);
+  return store.length !== before;
 }

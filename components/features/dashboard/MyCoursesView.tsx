@@ -11,7 +11,6 @@ import {
   ArrowRight,
   BadgePercent,
   CheckCircle2,
-  Play,
   Sparkles,
 } from "lucide-react";
 
