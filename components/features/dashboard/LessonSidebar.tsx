@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CheckCircle2, Circle, Lock, Trophy, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Trophy, ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const modules = [
     completed: true,
     expanded: false,
     lessons: [],
+    quiz: { id: "q1", title: "Quiz", completed: true, locked: false },
   },
   {
     id: "m2",
@@ -24,6 +25,7 @@ const modules = [
       { id: "l2", title: "Pareto Chart Analysis", completed: false, current: true, locked: false },
       { id: "l3", title: "Control Chart Methods", completed: false, current: false, locked: true },
     ],
+    quiz: { id: "q2", title: "Quiz", completed: false, locked: false },
   },
   {
     id: "m3",
@@ -31,6 +33,7 @@ const modules = [
     completed: false,
     expanded: false,
     lessons: [],
+    quiz: { id: "q3", title: "Quiz", completed: false, locked: true },
   },
 ];
 
@@ -88,7 +91,7 @@ export function LessonSidebar({
               )}
               <span className="truncate">{mod.title}</span>
             </button>
-            {expanded[mod.id] && mod.lessons.length > 0 && (
+            {expanded[mod.id] && (mod.lessons.length > 0 || mod.quiz) ? (
               <div className="ml-6 mt-1 space-y-0.5">
                 {mod.lessons.map((lesson) => (
                   <Link
@@ -114,8 +117,29 @@ export function LessonSidebar({
                     <span className="truncate">{lesson.title}</span>
                   </Link>
                 ))}
+
+                {mod.quiz ? (
+                  <Link
+                    href={mod.quiz.locked ? "#" : `/dashboard/quizzes?module=${encodeURIComponent(mod.id)}`}
+                    onClick={mod.quiz.locked ? undefined : onNavigate}
+                    className={cn(
+                      "mt-1 flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm",
+                      "text-zinc-600 hover:bg-zinc-50",
+                      mod.quiz.locked && "pointer-events-none opacity-60"
+                    )}
+                  >
+                    {mod.quiz.locked ? (
+                      <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                    ) : mod.quiz.completed ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                    ) : (
+                      <HelpCircle className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                    )}
+                    <span className="truncate">{mod.quiz.title}</span>
+                  </Link>
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </nav>

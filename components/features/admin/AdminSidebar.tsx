@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 const nav = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/courses", label: "Courses", icon: GraduationCap },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },

@@ -44,6 +44,10 @@ export function UserUpsertModal({
       name: user?.name ?? "",
       email: user?.email ?? "",
       role: (user?.role ?? "member") as CreateUserSchema["role"],
+      phone: user?.phone ?? "",
+      course: user?.course ?? "",
+      country: user?.country ?? "",
+      speciality: user?.speciality ?? "",
     }),
     [user]
   );
@@ -84,6 +88,26 @@ export function UserUpsertModal({
                 options={ROLE_OPTIONS as unknown as { value: string; label: string }[]}
                 placeholder="Select role"
               />
+              <FormField name="phone" label="Phone">
+                {({ id, error, ...rest }) => (
+                  <FormInput id={id} error={error} type="tel" placeholder="e.g. +20 100 123 4567" {...rest} />
+                )}
+              </FormField>
+              <FormField name="course" label="Course">
+                {({ id, error, ...rest }) => (
+                  <FormInput id={id} error={error} placeholder="e.g. CPHQ Exam Prep" {...rest} />
+                )}
+              </FormField>
+              <FormField name="country" label="Country">
+                {({ id, error, ...rest }) => (
+                  <FormInput id={id} error={error} placeholder="e.g. Egypt" {...rest} />
+                )}
+              </FormField>
+              <FormField name="speciality" label="Speciality">
+                {({ id, error, ...rest }) => (
+                  <FormInput id={id} error={error} placeholder="e.g. Quality Management" {...rest} />
+                )}
+              </FormField>
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,22 +15,50 @@ import {
 } from "@/components/ui/select";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/features/admin/ConfirmDialog";
-import { fetchPromoCodes, deletePromoCode } from "@/lib/dal";
+import { deletePromoCode, fetchPromoCodes, updatePromoCode } from "@/lib/dal";
 import type { PromoCode } from "@/types/promo";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Copy, Pencil, Plus, Search, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 
 type StatusFilter = "all" | "active" | "inactive";
+type TypeFilter = "all" | PromoCode["discountType"];
+type ScopeFilter = "all" | "sitewide" | "restricted";
+type LimitFilter = "all" | "limited" | "unlimited";
+
+function formatUsd(amount: number) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(amount);
+}
 
 function formatDiscount(p: PromoCode) {
-  return p.discountType === "percentage"
-    ? `${p.discountValue}%`
-    : `$${p.discountValue.toFixed(2)}`;
+  return p.discountType === "percentage" ? `${p.discountValue}%` : formatUsd(p.discountValue);
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
 }
 
 export function AdminPromoCodesView() {
   const [promos, setPromos] = React.useState<PromoCode[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
+  const [typeFilter, setTypeFilter] = React.useState<TypeFilter>("all");
+  const [scopeFilter, setScopeFilter] = React.useState<ScopeFilter>("all");
+  const [limitFilter, setLimitFilter] = React.useState<LimitFilter>("all");
+  const [query, setQuery] = React.useState("");
+
+  const [togglingId, setTogglingId] = React.useState<string | null>(null);
   const [deleting, setDeleting] = React.useState<PromoCode | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
@@ -49,11 +79,41 @@ export function AdminPromoCodesView() {
     };
   }, []);
 
+  const stats = React.useMemo(() => {
+    const total = promos.length;
+    const active = promos.filter((p) => p.active).length;
+    const inactive = total - active;
+    const totalUses = promos.reduce((acc, p) => acc + (p.usageCount ?? 0), 0);
+    const restricted = promos.filter((p) => p.restrictToProductEnabled).length;
+    return { total, active, inactive, totalUses, restricted };
+  }, [promos]);
+
   const filtered = React.useMemo(() => {
-    if (statusFilter === "all") return promos;
-    if (statusFilter === "active") return promos.filter((p) => p.active);
-    return promos.filter((p) => !p.active);
-  }, [promos, statusFilter]);
+    const q = query.trim().toLowerCase();
+    return promos.filter((p) => {
+      if (statusFilter !== "all") {
+        if (statusFilter === "active" && !p.active) return false;
+        if (statusFilter === "inactive" && p.active) return false;
+      }
+      if (typeFilter !== "all" && p.discountType !== typeFilter) return false;
+      if (scopeFilter !== "all") {
+        const restricted = !!p.restrictToProductEnabled;
+        if (scopeFilter === "restricted" && !restricted) return false;
+        if (scopeFilter === "sitewide" && restricted) return false;
+      }
+      if (limitFilter !== "all") {
+        const limited = !!p.maxUsageEnabled;
+        if (limitFilter === "limited" && !limited) return false;
+        if (limitFilter === "unlimited" && limited) return false;
+      }
+      if (!q) return true;
+      return (
+        p.code.toLowerCase().includes(q) ||
+        String(p.discountValue).toLowerCase().includes(q) ||
+        (p.productId ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [promos, statusFilter, typeFilter, scopeFilter, limitFilter, query]);
 
   const handleDelete = async () => {
     if (!deleting) return;
@@ -68,153 +128,350 @@ export function AdminPromoCodesView() {
     }
   };
 
+  const toggleActive = async (promo: PromoCode) => {
+    setTogglingId(promo.id);
+    try {
+      const updated = await updatePromoCode(promo.id, { active: !promo.active });
+      if (!updated) return;
+      setPromos((prev) => prev.map((p) => (p.id === promo.id ? updated : p)));
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const columns: ColumnDef<PromoCode>[] = React.useMemo(
     () => [
-      {
-        id: "index",
-        header: "#",
-        cell: ({ row }) => row.index + 1,
-        size: 48,
-      },
       {
         accessorKey: "code",
         header: "Promo code",
         cell: ({ row }) => (
-          <span className="font-mono font-semibold text-zinc-900">{row.original.code}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-semibold text-zinc-900">{row.original.code}</span>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-xl border-zinc-200"
+                onClick={() => void copyText(row.original.code)}
+                aria-label="Copy promo code"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
+                  row.original.active
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-zinc-200 bg-zinc-100 text-zinc-700"
+                )}
+              >
+                {row.original.active ? "Active" : "Inactive"}
+              </span>
+            </div>
+            <div className="mt-0.5 text-xs text-zinc-500">
+              {row.original.restrictToProductEnabled
+                ? `Restricted · ${row.original.productId ?? "—"}`
+                : "Sitewide"}
+            </div>
+          </div>
         ),
       },
       {
-        id: "discountValue",
-        header: "Discount value",
-        cell: ({ row }) => (
-          <span className="text-sm text-zinc-700">{formatDiscount(row.original)}</span>
-        ),
-      },
-      {
-        id: "maxUsage",
-        header: "Max usage",
+        id: "discount",
+        header: "Discount",
         cell: ({ row }) => {
           const p = row.original;
+          const typeBadge =
+            p.discountType === "percentage"
+              ? "bg-blue-50 text-blue-700 border-blue-200"
+              : "bg-amber-50 text-amber-700 border-amber-200";
           return (
-            <span className="text-sm text-zinc-600">
-              {p.maxUsageEnabled && p.maxUsage != null ? p.maxUsage : "—"}
-            </span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold capitalize",
+                    typeBadge
+                  )}
+                >
+                  {p.discountType}
+                </span>
+                <span className="text-sm font-semibold text-zinc-900">{formatDiscount(p)}</span>
+              </div>
+              {p.discountType === "fixed" ? (
+                <div className="text-xs text-zinc-500">USD amount off</div>
+              ) : (
+                <div className="text-xs text-zinc-500">Percentage off</div>
+              )}
+            </div>
           );
         },
       },
       {
-        id: "perCustomer",
-        header: "Max usage per customer",
+        id: "limits",
+        header: "Limits",
         cell: ({ row }) => {
           const p = row.original;
+          const maxUsage = p.maxUsageEnabled && p.maxUsage != null ? p.maxUsage : null;
+          const perCustomer =
+            p.perCustomerLimitEnabled && p.perCustomerLimit != null ? p.perCustomerLimit : null;
           return (
-            <span className="text-sm text-zinc-600">
-              {p.perCustomerLimitEnabled && p.perCustomerLimit != null ? p.perCustomerLimit : "—"}
-            </span>
+            <div className="space-y-1">
+              <div className="text-sm text-zinc-700">
+                {maxUsage != null ? `Max ${maxUsage}` : "Unlimited"}
+              </div>
+              <div className="text-xs text-zinc-500">
+                {perCustomer != null ? `Per customer ${perCustomer}` : "No per-customer limit"}
+              </div>
+            </div>
           );
         },
       },
       {
-        accessorKey: "usageCount",
-        header: "Usage count",
-        cell: ({ row }) => (
-          <span className="text-sm text-zinc-600">{row.original.usageCount}</span>
-        ),
-      },
-      {
-        accessorKey: "active",
-        header: "Active",
-        cell: ({ row }) => (
-          <span
-            className={
-              row.original.active
-                ? "text-emerald-600 font-medium"
-                : "text-zinc-500"
-            }
-          >
-            {row.original.active ? "Yes" : "No"}
-          </span>
-        ),
+        id: "usage",
+        header: "Usage",
+        cell: ({ row }) => {
+          const p = row.original;
+          const maxUsage = p.maxUsageEnabled && p.maxUsage != null ? p.maxUsage : null;
+          const pct = maxUsage && maxUsage > 0 ? Math.min(100, Math.round((p.usageCount / maxUsage) * 100)) : null;
+          return (
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-zinc-800">
+                {maxUsage != null ? `${p.usageCount}/${maxUsage}` : `${p.usageCount}`}
+              </div>
+              {pct != null ? (
+                <div className="h-2 w-28 overflow-hidden rounded-full bg-zinc-200">
+                  <div className="h-full bg-gold" style={{ width: `${pct}%` }} />
+                </div>
+              ) : (
+                <div className="text-xs text-zinc-500">No cap</div>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: "actions",
-        header: "Actions",
+        header: "",
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
-            <Button asChild size="sm" variant="outline" className="rounded-xl border-zinc-200">
-              <Link href={`/admin/promo-codes/${row.original.id}/edit`}>
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 rounded-xl border-zinc-200"
+              onClick={() => void toggleActive(row.original)}
+              disabled={togglingId === row.original.id}
+              aria-label={row.original.active ? "Deactivate promo code" : "Activate promo code"}
+            >
+              {row.original.active ? (
+                <ToggleRight className="h-4 w-4" />
+              ) : (
+                <ToggleLeft className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              asChild
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 rounded-xl border-zinc-200"
+              aria-label="Edit"
+            >
+              <Link href={`/admin/promo-codes/new?edit=${row.original.id}`}>
                 <Pencil className="h-4 w-4" />
-                Edit
               </Link>
             </Button>
             <Button
               type="button"
-              size="sm"
+              size="icon"
               variant="outline"
-              className="rounded-xl border-zinc-200 text-red-600 hover:text-red-700"
+              className="h-9 w-9 rounded-xl border-zinc-200 text-red-600 hover:text-red-700"
               onClick={() => {
                 setDeleting(row.original);
                 setDeleteOpen(true);
               }}
+              aria-label="Delete"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
             </Button>
           </div>
         ),
       },
     ],
-    []
+    [togglingId]
   );
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Promo codes</h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Total promo codes ({promos.length})
-          </p>
-        </div>
-        <Button asChild className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800">
-          <Link href="/admin/promo-codes/new" className="inline-flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add new
-          </Link>
-        </Button>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Total codes
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.total}</div>
+            <div className="mt-1 text-xs text-zinc-500">
+              {stats.active} active · {stats.inactive} inactive
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Total uses
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.totalUses}</div>
+            <div className="mt-1 text-xs text-zinc-500">Across all promo codes</div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Restricted
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{stats.restricted}</div>
+            <div className="mt-1 text-xs text-zinc-500">Locked to a product/course</div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Showing
+            </div>
+            <div className="mt-2 text-2xl font-bold text-zinc-900">{filtered.length}</div>
+            <div className="mt-1 text-xs text-zinc-500">Within selected filters</div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-zinc-700">Status</span>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-10 w-[140px] rounded-xl border-zinc-200 bg-white">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+        <CardContent className="space-y-4 pt-6">
+          <div className="grid gap-3 sm:grid-cols-[1fr_160px_160px_180px_180px_auto] sm:items-end">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Search</div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Code, value, product id…"
+                  className="h-10 rounded-xl border-zinc-200 bg-white pl-9"
+                />
+              </div>
+            </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="p-10 text-center text-sm text-zinc-600">Loading…</div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={filtered}
-            pageSize={10}
-            enableRowSelection={false}
-            emptyMessage="No promo codes yet. Click “Add new” to create one."
-            className="[&_.rounded-md.border]:rounded-2xl [&_.rounded-md.border]:border-zinc-200"
-          />
-        )}
-      </div>
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Status</div>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Type</div>
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as TypeFilter)}>
+                <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="fixed">Fixed (USD)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Scope</div>
+              <Select value={scopeFilter} onValueChange={(v) => setScopeFilter(v as ScopeFilter)}>
+                <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="sitewide">Sitewide</SelectItem>
+                  <SelectItem value="restricted">Restricted</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Max usage</div>
+              <Select value={limitFilter} onValueChange={(v) => setLimitFilter(v as LimitFilter)}>
+                <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="limited">Limited</SelectItem>
+                  <SelectItem value="unlimited">Unlimited</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              asChild
+              className="h-10 w-full rounded-xl bg-gold text-gold-foreground hover:bg-gold/90 sm:w-auto"
+            >
+              <Link href="/admin/promo-codes/new" className="inline-flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add promo code
+              </Link>
+            </Button>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50/80 py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
+              <p className="mt-3 text-sm font-medium text-zinc-600">Loading promo codes…</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50/50 py-16 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-200/80 text-zinc-500">
+                <Copy className="h-7 w-7" />
+              </div>
+              <p className="mt-4 text-base font-semibold text-zinc-800">No promo codes found</p>
+              <p className="mt-1 max-w-sm text-sm text-zinc-500">
+                Try adjusting filters, or create a new promo code.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 rounded-xl border-zinc-200"
+                onClick={() => {
+                  setQuery("");
+                  setStatusFilter("all");
+                  setTypeFilter("all");
+                  setScopeFilter("all");
+                  setLimitFilter("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              <DataTable
+                columns={columns}
+                data={filtered}
+                pageSize={10}
+                enableRowSelection={false}
+                emptyMessage="No promo codes found."
+                className="[&_.rounded-md.border]:rounded-2xl [&_.rounded-md.border]:border-zinc-200 [&_thead]:bg-zinc-50/70"
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <ConfirmDialog
         open={deleteOpen}
@@ -222,7 +479,8 @@ export function AdminPromoCodesView() {
         title="Delete promo code?"
         description={
           deleting
-            ? `This will permanently remove "${deleting.code}".`            : "This will permanently remove the promo code."
+            ? `This will permanently remove “${deleting.code}”.`
+            : "This will permanently remove the promo code."
         }
         confirmText="Delete"
         confirmVariant="destructive"

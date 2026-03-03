@@ -7,6 +7,52 @@ function clone<T>(obj: T): T {
 
 let store: PromoCode[] = [];
 
+// Seed a few demo promo codes for the admin UI.
+store = [
+  {
+    id: "1",
+    code: "WELCOME10",
+    discountType: "percentage",
+    discountValue: 10,
+    active: true,
+    maxUsageEnabled: true,
+    maxUsage: 500,
+    perCustomerLimitEnabled: true,
+    perCustomerLimit: 1,
+    restrictToProductEnabled: false,
+    productId: null,
+    usageCount: 128,
+  },
+  {
+    id: "2",
+    code: "FLASH25",
+    discountType: "percentage",
+    discountValue: 25,
+    active: false,
+    maxUsageEnabled: true,
+    maxUsage: 50,
+    perCustomerLimitEnabled: false,
+    perCustomerLimit: null,
+    restrictToProductEnabled: true,
+    productId: "course-1",
+    usageCount: 50,
+  },
+  {
+    id: "3",
+    code: "SAVE15",
+    discountType: "fixed",
+    discountValue: 15,
+    active: true,
+    maxUsageEnabled: false,
+    maxUsage: null,
+    perCustomerLimitEnabled: false,
+    perCustomerLimit: null,
+    restrictToProductEnabled: false,
+    productId: null,
+    usageCount: 12,
+  },
+];
+
 function nextId(): string {
   const max = store.reduce((acc, p) => Math.max(acc, Number(p.id) || 0), 0);
   return String(max + 1);

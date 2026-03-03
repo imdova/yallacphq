@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, Clock, Users, ShoppingCart } from "lucide-react";
+import { Star, Clock, Users, ShoppingCart, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TAG_STYLES } from "@/constants/courses";
@@ -17,6 +17,7 @@ export function CourseCard({ course }: { course: Course }) {
   const detailsHref = `${ROUTES.COURSE_DETAILS}?course=${encodeURIComponent(course.id)}`;
   const hasSale = course.priceSale != null && course.priceSale > 0 && (course.priceRegular ?? 0) > (course.priceSale ?? 0);
   const displayPrice = hasSale ? course.priceSale! : (course.priceRegular ?? 0);
+  const lessonsCount = course.lessons ?? Math.max(1, Math.round(course.durationHours * 4));
 
   return (
     <Card className="group flex flex-col overflow-hidden rounded-2xl border-zinc-200 bg-white shadow-sm transition-all hover:border-zinc-300 hover:shadow-md">
@@ -67,10 +68,16 @@ export function CourseCard({ course }: { course: Course }) {
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between gap-2 text-sm">
-          <span className="flex items-center gap-1.5 text-zinc-500">
-            <Clock className="h-4 w-4" aria-hidden />
-            {course.durationHours}h
-          </span>
+          <div className="flex items-center gap-3 text-zinc-500">
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" aria-hidden />
+              {course.durationHours}h
+            </span>
+            <span className="flex items-center gap-1.5">
+              <BookOpen className="h-4 w-4" aria-hidden />
+              {lessonsCount.toLocaleString()} lessons
+            </span>
+          </div>
           {(course.priceRegular != null || course.priceSale != null) && (
             <div className="flex items-center gap-2">
               {hasSale && (

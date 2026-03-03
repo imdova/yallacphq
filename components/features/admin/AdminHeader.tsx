@@ -1,12 +1,21 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Search } from "lucide-react";
+import { Bell, Plus, Search, Ticket, Users, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
-  "/admin": { title: "Overview", subtitle: "KPIs, activity, and quick actions" },
+  "/admin": { title: "Dashboard", subtitle: "KPIs, activity, and quick actions" },
   "/admin/students": { title: "Students", subtitle: "Manage students and roles" },
   "/admin/courses": { title: "Courses", subtitle: "Catalog, pricing, and publishing" },
   "/admin/courses/new": { title: "New course", subtitle: "Create course in 2 steps" },
@@ -51,13 +60,49 @@ export function AdminHeader() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                size="sm"
+                className="h-9 rounded-xl bg-gold text-gold-foreground hover:bg-gold/90"
+              >
+                <Plus className="h-4 w-4" />
+                Quick add
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/admin/students">
+                  <Users className="mr-2 h-4 w-4" />
+                  New student
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/courses/new">
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  New course
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/admin/promo-codes/new">
+                  <Ticket className="mr-2 h-4 w-4" />
+                  New promo code
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+            aria-label="Notifications"
+          >
+            <Bell className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </header>
   );

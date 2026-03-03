@@ -61,7 +61,7 @@ const AVAILABILITY_OPTIONS = [
   { value: "custom", label: "Custom time" },
 ] as const;
 
-const CURRENCY_OPTIONS = [{ value: "EGP", label: "EGP" }] as const;
+const CURRENCY_OPTIONS = [{ value: "USD", label: "USD" }] as const;
 
 function nextId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -130,7 +130,7 @@ export default function AdminCourseNewPage() {
       priceSale: undefined,
       availability: "permanent",
       enablePromoCode: true,
-      currency: "EGP",
+      currency: "USD",
       discountPercent: 0,
       level: "Intermediate",
       enrolledCount: 0,
@@ -503,7 +503,7 @@ export default function AdminCourseNewPage() {
                               <div className="space-y-1.5">
                                 <div className="flex overflow-hidden rounded-xl border border-zinc-200 bg-white focus-within:ring-2 focus-within:ring-zinc-400/40">
                                   <select
-                                    value={methods.watch("currency") ?? "EGP"}
+                                    value={methods.watch("currency") ?? "USD"}
                                     onChange={(e) => methods.setValue("currency", e.target.value)}
                                     className="border-0 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 focus:outline-none"
                                   >
@@ -530,7 +530,7 @@ export default function AdminCourseNewPage() {
                             {({ id, error, ...rest }) => (
                               <div className="flex overflow-hidden rounded-xl border border-zinc-200 bg-white focus-within:ring-2 focus-within:ring-zinc-400/40">
                                 <select
-                                  value={methods.watch("currency") ?? "EGP"}
+                                  value={methods.watch("currency") ?? "USD"}
                                   onChange={(e) => methods.setValue("currency", e.target.value)}
                                   className="border-0 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 focus:outline-none"
                                 >

@@ -4,8 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,11 +16,9 @@ import {
 } from "@/components/ui/select";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/features/admin/ConfirmDialog";
-import { CourseUpsertModal } from "@/components/features/admin/CourseUpsertModal";
-import { createCourse, fetchCourses, removeCourse, updateCourse } from "@/lib/dal";
+import { createCourse, fetchCourses, removeCourse } from "@/lib/dal";
 import type { Course } from "@/types/course";
-import type { CreateCourseSchema } from "@/lib/validations/course";
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, Pencil, Plus, Search, Trash2 } from "lucide-react";
 
 type AccessFilter = "all" | "free" | "paid";
 type TagFilter = "all" | string;
@@ -43,12 +42,9 @@ function formatPrice(c: Course) {
 export function AdminCoursesView() {
   const [courses, setCourses] = React.useState<Course[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [access, setAccess] = React.useState<AccessFilter>("all"); // used as "Type" in UI (Free/Paid)
-  const [tag, setTag] = React.useState<TagFilter>("all"); // "Category"
-
-  const [mode, setMode] = React.useState<"create" | "edit">("create");
-  const [editing, setEditing] = React.useState<Course | null>(null);
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [access, setAccess] = React.useState<AccessFilter>("all"); // Payment: Free/Paid
+  const [tag, setTag] = React.useState<TagFilter>("all"); // Category
 
   const [deleting, setDeleting] = React.useState<Course | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
@@ -86,36 +82,20 @@ export function AdminCoursesView() {
   }, [courses]);
 
   const filtered = React.useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return courses.filter((c) => {
+      if (q) {
+        const title = (c.title ?? "").toLowerCase();
+        const tagStr = (c.tag ?? "").toLowerCase();
+        if (!title.includes(q) && !tagStr.includes(q)) return false;
+      }
       const isFree = (c.priceSale ?? c.priceRegular ?? 0) === 0;
       if (access === "free" && !isFree) return false;
       if (access === "paid" && isFree) return false;
       if (tag !== "all" && c.tag !== tag) return false;
       return true;
     });
-  }, [courses, access, tag]);
-
-  const handleUpsert = async (data: CreateCourseSchema) => {
-    const payload = {
-      title: data.title,
-      tag: data.tag,
-      instructorName: data.instructorName,
-      instructorTitle: data.instructorTitle,
-      durationHours: data.durationHours,
-      priceRegular: data.priceRegular ?? 0,
-      priceSale: data.priceSale,
-    };
-
-    if (mode === "create") {
-      const created = await createCourse(payload);
-      setCourses((prev) => [...prev, created]);
-      return;
-    }
-    if (!editing) return;
-    const updated = await updateCourse(editing.id, payload);
-    if (!updated) return;
-    setCourses((prev) => prev.map((c) => (c.id === editing.id ? updated : c)));
-  };
+  }, [courses, searchQuery, access, tag]);
 
   const handleDelete = async () => {
     if (!deleting) return;
@@ -172,6 +152,7 @@ export function AdminCoursesView() {
         header: "Course",
         cell: ({ row }) => {
           const c = row.original;
+          const href = `/admin/courses/${c.id}`;
           const imgSrc =
             c.imageUrl?.startsWith("data:") || c.imageUrl?.startsWith("http")
               ? c.imageUrl
@@ -189,7 +170,12 @@ export function AdminCoursesView() {
                 )}
               </div>
               <div className="min-w-0">
-                <div className="truncate font-semibold text-zinc-900">{c.title}</div>
+                <Link
+                  href={href}
+                  className="truncate font-semibold text-zinc-900 hover:underline"
+                >
+                  {c.title}
+                </Link>
               </div>
             </div>
           );
@@ -270,18 +256,15 @@ export function AdminCoursesView() {
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
             <Button
-              type="button"
+              asChild
               size="icon"
               variant="outline"
               className="h-9 w-9 rounded-xl border-zinc-200"
-              onClick={() => {
-                setMode("edit");
-                setEditing(row.original);
-                setModalOpen(true);
-              }}
               aria-label="Edit"
             >
-              <Pencil className="h-4 w-4" />
+              <Link href={`/admin/courses/new?edit=${row.original.id}`}>
+                <Pencil className="h-4 w-4" />
+              </Link>
             </Button>
             <Button
               type="button"
@@ -357,16 +340,21 @@ export function AdminCoursesView() {
       </div>
 
       <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
-        <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <CardTitle className="text-base">Courses</CardTitle>
-            <CardDescription>
-              Modern overview with pricing, enrollments, and access controls.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-0">
-          <div className="grid gap-3 rounded-2xl border border-zinc-200 bg-white p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <CardContent className="space-y-4 pt-6">
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-zinc-600">Search</div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  type="search"
+                  placeholder="Title, category…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-10 rounded-xl border-zinc-200 bg-white pl-9 pr-4"
+                />
+              </div>
+            </div>
             <div className="space-y-1">
               <div className="text-xs font-semibold text-zinc-600">Category</div>
               <Select value={tag} onValueChange={(v) => setTag(v as TagFilter)}>
@@ -385,7 +373,7 @@ export function AdminCoursesView() {
             </div>
 
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-zinc-600">Type</div>
+              <div className="text-xs font-semibold text-zinc-600">Payment</div>
               <Select value={access} onValueChange={(v) => setAccess(v as AccessFilter)}>
                 <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white">
                   <SelectValue placeholder="All" />
@@ -425,14 +413,6 @@ export function AdminCoursesView() {
           )}
         </CardContent>
       </Card>
-
-      <CourseUpsertModal
-        open={modalOpen}
-        mode={mode}
-        course={editing}
-        onOpenChange={setModalOpen}
-        onSubmit={handleUpsert}
-      />
 
       <ConfirmDialog
         open={deleteOpen}
